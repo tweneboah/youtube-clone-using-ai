@@ -1,0 +1,358 @@
+---
+alwaysApply: true
+---
+
+🚀 FINAL FULL-STACK YOUTUBE CLONE CURSOR AI PROMPT
+(UI + API + Auth + Upload + Layout + Styles — everything in one project)
+
+You are an expert full-stack Senior Next.js Engineer. Build a COMPLETE YouTube-style application using:
+Next.js App Router (full-stack)
+
+
+TailwindCSS
+
+
+MongoDB + Mongoose
+
+
+JWT Authentication + OAuth
+
+
+Cloudinary Uploads (videos + thumbnails)
+
+
+Server Components (for UI)
+
+
+API Route Handlers (for backend logic)
+
+
+UI layout and colors from given reference image:
+ /mnt/data/youtbe clone.png
+
+
+This app must look exactly like the reference design and must have all core YouTube features except:
+ 
+
+🎨 STYLE GUIDE (MATCH EXACT IMAGE PERFECTLY)
+Use the layout, colors, spacing, typography, and component structure from:
+ 👉 /mnt/data/youtbe clone.png
+Colors
+Background: #F6F6F6
+
+
+Sidebar container: #FFFFFF (rounded 20px)
+
+
+Main content container: #FFFFFF
+
+
+Search bar background: #ECECEC
+
+
+Primary text: #111111
+
+
+Secondary text: #555555
+
+
+Muted text: #999999
+
+
+YouTube Red: #FF0000
+
+
+Rounding
+Outer containers: 20px
+
+
+Cards / thumbnails: 12px
+
+
+Spacing
+Page padding: 32px
+
+
+Sidebar padding: 20px
+
+
+Grid gap: 24px
+
+
+Shadows
+ Use soft:
+ shadow-[0_4px_12px_rgba(0,0,0,0.05)]
+Font
+ Use Inter or system-ui.
+
+🧱 FEATURES TO BUILD (FULL STACK)
+🔐 User Authentication
+1. JWT Auth
+/api/auth/register
+
+
+/api/auth/login
+
+
+2. OAuth
+Implement:
+Google OAuth
+
+
+GitHub OAuth
+
+
+Store OAuth users in the same User collection.
+
+👤 User System
+User model:
+name
+email
+password (if email login)
+avatar
+oauthProvider
+oauthId
+subscribers: number
+subscriptions: [userId]
+createdAt
+
+
+📺 Subscription System
+Endpoints:
+POST /api/users/[id]/subscribe
+
+
+POST /api/users/[id]/unsubscribe
+
+
+GET /api/users/[id]/subscriptions
+
+
+Sidebar must display subscribed creators exactly like reference UI.
+
+🎥 Video Upload System
+Use Cloudinary for:
+Video upload
+
+
+Thumbnail upload
+
+
+POST /api/upload
+ Accepts multipart formData.
+Returns:
+videoUrl
+thumbnailUrl
+duration
+
+
+📚 Video CRUD
+API:
+POST /api/videos
+
+
+GET /api/videos
+
+
+GET /api/videos/[id]
+
+
+PATCH /api/videos/[id]
+
+
+DELETE /api/videos/[id]
+
+
+GET /api/videos/channel/[userId]
+
+
+GET /api/videos/category/[slug]
+
+
+Video schema:
+title
+description
+thumbnail
+videoUrl
+duration
+category
+views
+userId (ref)
+createdAt
+
+
+👁️ Views System
+Route:
+ POST /api/videos/[id]/view
+ Store per user or per IP to avoid spam.
+
+💬 Comments
+Endpoints:
+POST /api/comments
+
+
+GET /api/comments/[videoId]
+
+
+DELETE /api/comments/[id]
+
+
+
+❤️ Likes
+Endpoints:
+POST /api/videos/[id]/like (toggle)
+
+
+GET /api/videos/[id]/likes
+
+
+
+🔍 Search
+Route:
+ GET /api/search?q=keyword
+Search by:
+title
+
+
+description
+
+
+category
+
+
+
+🕒 History
+Store and show watch history.
+Endpoints:
+POST /api/history
+
+
+GET /api/history
+
+
+
+🧱 REQUIRED FOLDER STRUCTURE
+app/
+  layout.tsx
+  page.tsx
+  watch/[id]/page.tsx
+  upload/page.tsx
+  channel/[id]/page.tsx
+  search/page.tsx
+
+  api/
+    auth/
+      register/route.ts
+      login/route.ts
+      oauth/
+        google/route.ts
+        github/route.ts
+    upload/route.ts
+    videos/
+      route.ts
+      [id]/route.ts
+      [id]/
+        like/route.ts
+        view/route.ts
+      channel/[userId]/route.ts
+      category/[slug]/route.ts
+    users/[id]/
+      subscribe/route.ts
+      unsubscribe/route.ts
+      subscriptions/route.ts
+    comments/
+      route.ts
+      [videoId]/route.ts
+      [id]/route.ts
+    history/route.ts
+    search/route.ts
+
+components/
+  Sidebar.tsx
+  Topbar.tsx
+  VideoCard.tsx
+  VideoGrid.tsx
+  SearchBar.tsx
+
+lib/
+  mongodb.ts
+  cloudinary.ts
+  auth.ts
+  utils.ts
+
+models/
+  User.ts
+  Video.ts
+  Comment.ts
+  Like.ts
+  History.ts
+
+
+🎨 UI REQUIREMENTS (MATCH IMAGE EXACTLY)
+Sidebar
+YouTube logo
+
+
+Navigation items with icons
+
+
+Subscription list with avatars
+
+
+Footer links
+
+
+Top Bar
+Greeting “Hey Helen, Have a good day! 👋”
+
+
+Search bar (rounded full)
+
+
+Icons (upload, bell)
+
+
+Profile avatar
+
+
+Recommended Page
+Title: Recommended
+
+
+3–4 columns grid
+
+
+Video cards identical to screenshot:
+
+
+Thumbnail (rounded)
+
+
+Duration badge bottom-right
+
+
+Title
+
+
+Creator name
+
+
+Views + time
+
+
+
+🔥 OUTPUT REQUIREMENT
+Cursor must generate:
+✅ Full working Next.js app
+ ✅ Full backend API system
+ ✅ MongoDB connection
+ ✅ Mongoose models
+ ✅ Cloudinary upload logic
+ ✅ OAuth + JWT
+ ✅ Full UI matching design /mnt/data/youtbe clone.png
+ ✅ All pages + components
+ ✅ Fully functional YouTube Clone (core features)
+
+📌 END OF PROMPT
+Begin building the entire project now.
+

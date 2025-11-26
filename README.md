@@ -1,36 +1,192 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# YouTube Clone
+
+A full-stack YouTube clone built with Next.js 16, MongoDB, Cloudinary, and NextAuth.js with Google OAuth.
+
+![YouTube Clone](./meta/youtube.webp)
+
+## Features
+
+- 🔐 **Authentication** - Email/password + Google OAuth sign-in
+- 📺 **Video Upload** - Upload videos with thumbnails via Cloudinary
+- 🎥 **Video Playback** - Stream videos with custom player
+- 💬 **Comments** - Add and delete comments on videos
+- ❤️ **Likes** - Like/unlike videos
+- 📺 **Subscriptions** - Subscribe to channels
+- 🔍 **Search** - Search videos by title, description, category
+- 🕒 **Watch History** - Track watched videos
+- 📚 **Library** - Access your videos, history, and liked videos
+
+## Tech Stack
+
+- **Frontend**: Next.js 16 (App Router), React 19, TailwindCSS 4
+- **Backend**: Next.js API Routes
+- **Database**: MongoDB with Mongoose
+- **Storage**: Cloudinary (videos & thumbnails)
+- **Auth**: NextAuth.js with Google OAuth + Credentials
+- **Icons**: React Icons
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+
+- MongoDB database (local or Atlas)
+- Cloudinary account
+- Google Cloud Console project (for OAuth)
+
+### 1. MongoDB Setup
+
+1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) and create a free account
+2. Create a new cluster
+3. Click "Connect" → "Connect your application"
+4. Copy the connection string (looks like: `mongodb+srv://username:password@cluster.mongodb.net/`)
+
+### 2. Cloudinary Setup
+
+1. Go to [Cloudinary](https://cloudinary.com/) and create a free account
+2. From your Dashboard, copy:
+   - Cloud Name
+   - API Key
+   - API Secret
+
+### 3. Google OAuth Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing one
+3. Go to **APIs & Services** → **Credentials**
+4. Click **Create Credentials** → **OAuth client ID**
+5. Configure the consent screen if prompted
+6. Select **Web application**
+7. Add authorized redirect URIs:
+   - `http://localhost:3000/api/auth/callback/google` (development)
+   - `http://localhost:3001/api/auth/callback/google` (alternative port)
+   - `https://yourdomain.com/api/auth/callback/google` (production)
+8. Copy the **Client ID** and **Client Secret**
+
+### 4. Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```env
+# MongoDB Connection (Required)
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/youtube-clone
+
+# NextAuth Secret (Required) - generate with: openssl rand -base64 32
+NEXTAUTH_SECRET=your-nextauth-secret-here
+NEXTAUTH_URL=http://localhost:3000
+
+# JWT Secret (for backwards compatibility)
+JWT_SECRET=your-jwt-secret-here
+
+# Cloudinary Configuration (Required for video uploads)
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+# Google OAuth (Required for Google sign-in)
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# App URL
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 5. Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Install dependencies
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Run development server
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/
+├── (auth)/                  # Auth pages (login, register)
+├── (main)/                  # Main app pages with sidebar
+│   ├── page.tsx            # Home page
+│   ├── watch/[id]/         # Video watch page
+│   ├── upload/             # Video upload page
+│   ├── channel/[id]/       # Channel page
+│   ├── search/             # Search page
+│   ├── history/            # Watch history
+│   ├── liked/              # Liked videos
+│   ├── subscriptions/      # Subscription feed
+│   ├── trending/           # Trending videos
+│   └── library/            # User library
+├── api/
+│   ├── auth/               # Auth endpoints (NextAuth)
+│   ├── videos/             # Video CRUD & actions
+│   ├── comments/           # Comment endpoints
+│   ├── users/              # User/subscription endpoints
+│   ├── upload/             # File upload endpoint
+│   ├── search/             # Search endpoint
+│   └── history/            # History endpoint
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+components/
+├── AuthProvider.tsx        # NextAuth session provider
+├── Sidebar.tsx             # Navigation sidebar
+├── Topbar.tsx              # Top navigation bar
+├── VideoCard.tsx           # Video thumbnail card
+├── VideoGrid.tsx           # Grid of video cards
+└── SearchBar.tsx           # Search input component
 
-## Deploy on Vercel
+lib/
+├── mongodb.ts              # MongoDB connection
+├── cloudinary.ts           # Cloudinary config
+├── auth.ts                 # Auth utilities
+├── auth-options.ts         # NextAuth configuration
+├── types.ts                # TypeScript types
+└── utils.ts                # Helper functions
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+models/
+├── User.ts                 # User model
+├── Video.ts                # Video model
+├── Comment.ts              # Comment model
+├── Like.ts                 # Like model
+├── History.ts              # Watch history model
+└── View.ts                 # View tracking model
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## API Endpoints
+
+### Authentication (NextAuth)
+- `GET/POST /api/auth/[...nextauth]` - NextAuth handlers
+- `POST /api/auth/register` - Register new user (email/password)
+
+### Videos
+- `GET /api/videos` - Get all videos
+- `POST /api/videos` - Create video
+- `GET /api/videos/[id]` - Get single video
+- `PATCH /api/videos/[id]` - Update video
+- `DELETE /api/videos/[id]` - Delete video
+- `POST /api/videos/[id]/view` - Record view
+- `POST /api/videos/[id]/like` - Toggle like
+- `GET /api/videos/[id]/like` - Get like status
+- `GET /api/videos/channel/[userId]` - Get channel videos
+- `GET /api/videos/category/[slug]` - Get category videos
+
+### Comments
+- `POST /api/comments` - Create comment
+- `GET /api/comments/[videoId]` - Get video comments
+- `DELETE /api/comments/delete/[id]` - Delete comment
+
+### Users & Subscriptions
+- `POST /api/users/[id]/subscribe` - Subscribe to channel
+- `POST /api/users/[id]/unsubscribe` - Unsubscribe
+- `GET /api/users/[id]/subscriptions` - Get subscriptions
+
+### Other
+- `POST /api/upload` - Upload video/thumbnail
+- `GET /api/search?q=query` - Search videos
+- `GET /api/history` - Get watch history
+- `POST /api/history` - Add to history
+
+## License
+
+MIT
