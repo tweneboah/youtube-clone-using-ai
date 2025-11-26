@@ -15,11 +15,12 @@ async function getSubscriptionData(userId: string) {
   await connectDB();
 
   const user = await User.findById(userId).select('subscriptions').lean();
-  const subscriptionCount = user?.subscriptions?.length || 0;
-
-  if (!subscriptionCount) {
+  
+  if (!user || !user.subscriptions || user.subscriptions.length === 0) {
     return { videos: [], subscriptionCount: 0 };
   }
+
+  const subscriptionCount = user.subscriptions.length;
 
   const videos = await Video.find({ userId: { $in: user.subscriptions } })
     .populate('userId', 'name avatar')
