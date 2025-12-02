@@ -15,6 +15,7 @@ import { HiOutlineVideoCamera, HiOutlineMenuAlt2 } from 'react-icons/hi';
 import { FaYoutube, FaPlus } from 'react-icons/fa';
 import { MdOutlineAccountCircle } from 'react-icons/md';
 import { RiVideoAddLine, RiLiveLine } from 'react-icons/ri';
+import { SiYoutubeshorts } from 'react-icons/si';
 
 interface User {
   _id: string;
@@ -151,10 +152,22 @@ export default function Topbar({ user, onToggleSidebar }: TopbarProps) {
                     <RiVideoAddLine className="w-5 h-5" />
                     Upload video
                   </Link>
-                  <button className="flex items-center gap-3 px-4 py-2.5 w-full hover:bg-[#F2F2F2] text-sm text-left">
+                  <Link
+                    href="/upload/short"
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#F2F2F2] text-sm"
+                    onClick={() => setShowCreateMenu(false)}
+                  >
+                    <SiYoutubeshorts className="w-5 h-5 text-[#FF0000]" />
+                    Create Short
+                  </Link>
+                  <Link
+                    href="/studio/live"
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#F2F2F2] text-sm"
+                    onClick={() => setShowCreateMenu(false)}
+                  >
                     <RiLiveLine className="w-5 h-5" />
                     Go live
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>

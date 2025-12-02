@@ -147,8 +147,8 @@ export default function VideoCard({
         if (!showMenu) setShowMenu(false);
       }}
     >
+      {/* Thumbnail */}
       <Link href={`/watch/${video._id}`} className="block">
-        {/* Thumbnail */}
         <div className="relative aspect-video rounded-xl overflow-hidden bg-[#F2F2F2]">
           <img
             src={video.thumbnail}
@@ -185,49 +185,49 @@ export default function VideoCard({
             </div>
           )}
         </div>
+      </Link>
 
-        {/* Info */}
-        <div className="flex gap-3 mt-3">
-          {/* Channel Avatar */}
-          <Link
-            href={`/channel/${video.userId._id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="flex-shrink-0"
-          >
-            {video.userId.avatar ? (
-              <img
-                src={video.userId.avatar}
-                alt={video.userId.name}
-                className="w-9 h-9 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-9 h-9 rounded-full bg-[#FF4500] flex items-center justify-center text-white text-sm font-medium">
-                {video.userId.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </Link>
+      {/* Info */}
+      <div className="flex gap-3 mt-3">
+        {/* Channel Avatar */}
+        <Link
+          href={`/channel/${video.userId._id}`}
+          className="flex-shrink-0"
+        >
+          {video.userId.avatar ? (
+            <img
+              src={video.userId.avatar}
+              alt={video.userId.name}
+              className="w-9 h-9 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-[#FF4500] flex items-center justify-center text-white text-sm font-medium">
+              {video.userId.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </Link>
 
-          {/* Video Details */}
-          <div className="flex-1 min-w-0 pr-6">
-            <h3 className="text-sm font-medium text-[#0F0F0F] line-clamp-2 leading-5 mb-1">
+        {/* Video Details */}
+        <div className="flex-1 min-w-0 pr-6">
+          <Link href={`/watch/${video._id}`}>
+            <h3 className="text-sm font-medium text-[#0F0F0F] line-clamp-2 leading-5 mb-1 hover:text-[#065FD4]">
               {video.title}
             </h3>
-            <Link
-              href={`/channel/${video.userId._id}`}
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1 text-xs text-[#606060] hover:text-[#0F0F0F] transition-colors"
-            >
-              <span>{video.userId.name}</span>
-              {video.userId.verified && (
-                <GoVerified className="w-3.5 h-3.5 text-[#606060]" />
-              )}
-            </Link>
-            <p className="text-xs text-[#606060] mt-0.5">
-              {formatViews(video.views)} views • {formatTimeAgo(video.createdAt)}
-            </p>
-          </div>
+          </Link>
+          <Link
+            href={`/channel/${video.userId._id}`}
+            className="flex items-center gap-1 text-xs text-[#606060] hover:text-[#0F0F0F] transition-colors"
+          >
+            <span>{video.userId.name}</span>
+            {video.userId.verified && (
+              <GoVerified className="w-3.5 h-3.5 text-[#606060]" />
+            )}
+          </Link>
+          <p className="text-xs text-[#606060] mt-0.5">
+            {formatViews(video.views)} views • {formatTimeAgo(video.createdAt)}
+          </p>
         </div>
-      </Link>
+      </div>
 
       {/* Menu Button */}
       <div className="absolute right-0 top-[calc(100%-52px)]">

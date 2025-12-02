@@ -87,4 +87,64 @@ export const deleteAsset = async (publicId: string, resourceType: 'image' | 'vid
   return cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
 };
 
+// Upload Short video (vertical 9:16)
+export const uploadShortVideo = async (file: Buffer, folder: string = 'shorts') => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'video',
+        folder,
+        chunk_size: 6000000,
+        transformation: [
+          { aspect_ratio: '9:16', crop: 'fill' },
+        ],
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    ).end(file);
+  });
+};
+
+// Upload Short thumbnail (vertical 9:16)
+export const uploadShortThumbnail = async (file: Buffer, folder: string = 'short-thumbnails') => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'image',
+        folder,
+        transformation: [
+          { width: 405, height: 720, crop: 'fill' },
+          { quality: 'auto' },
+        ],
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    ).end(file);
+  });
+};
+
+// Generate thumbnail from video at specific time
+export const generateVideoThumbnail = (videoUrl: string, time: number = 0): string => {
+  // Extract public_id from Cloudinary URL
+  const urlParts = videoUrl.split('/');
+  const uploadIndex = urlParts.findIndex(part => part === 'upload');
+  if (uploadIndex !== -1) {
+    const publicIdWithExt = urlParts.slice(uploadIndex + 2).join('/');
+    const publicId = publicIdWithExt.replace(/\.[^/.]+$/, '');
+    return cloudinary.url(publicId, {
+      resource_type: 'video',
+      transformation: [
+        { start_offset: time },
+        { width: 405, height: 720, crop: 'fill' },
+        { format: 'jpg' },
+      ],
+    });
+  }
+  return videoUrl;
+};
+
 export default cloudinary;

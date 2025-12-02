@@ -155,3 +155,17 @@ a:focus {
 .thumbnail-hover:hover img {
   border-radius: 0 !important;
 }
+
+/* Slow spin animation for music icon */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}

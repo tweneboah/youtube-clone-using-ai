@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import VideoCard from '@/components/VideoCard';
 import CategoryPills from '@/components/CategoryPills';
+import LiveNowSection from '@/components/live/LiveNowSection';
+import ShortsRow from '@/components/shorts/ShortsRow';
 
 interface Video {
   _id: string;
@@ -90,6 +92,12 @@ export default function HomePage() {
           onSelectCategory={setSelectedCategory}
         />
       </div>
+
+      {/* Live Now Section */}
+      {selectedCategory === 'All' && <LiveNowSection />}
+
+      {/* Shorts Row */}
+      {selectedCategory === 'All' && <ShortsRow />}
 
       {/* Video Grid */}
       {loading ? (

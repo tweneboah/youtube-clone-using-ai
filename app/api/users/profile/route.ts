@@ -3,7 +3,7 @@ import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
 
-// GET current user profile
+// GET user profile
 export async function GET() {
   try {
     const currentUser = await getCurrentUser();
@@ -17,14 +17,11 @@ export async function GET() {
     await connectDB();
 
     const user = await User.findById(currentUser.userId)
-      .select('name email avatar banner description customUrl subscribers verified createdAt')
+      .select('name email avatar banner description customUrl subscribers subscriptions')
       .lean();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -32,13 +29,11 @@ export async function GET() {
         _id: user._id.toString(),
         name: user.name,
         email: user.email,
-        avatar: user.avatar,
-        banner: user.banner,
-        description: user.description,
-        customUrl: user.customUrl,
-        subscribers: user.subscribers,
-        verified: user.verified,
-        createdAt: user.createdAt.toISOString(),
+        avatar: user.avatar || '',
+        banner: user.banner || '',
+        description: user.description || '',
+        customUrl: user.customUrl || '',
+        subscribers: user.subscribers || 0,
       },
     });
   } catch (error) {
@@ -62,74 +57,59 @@ export async function PATCH(request: NextRequest) {
     }
 
     const updates = await request.json();
-    await connectDB();
-
-    // Only allow updating certain fields
     const allowedUpdates = ['name', 'description', 'customUrl'];
-    const filteredUpdates = Object.keys(updates)
-      .filter((key) => allowedUpdates.includes(key))
-      .reduce((obj: Record<string, unknown>, key) => {
-        obj[key] = updates[key];
-        return obj;
-      }, {});
+    const filteredUpdates: Record<string, string> = {};
 
-    // Validate custom URL if provided
-    if (filteredUpdates.customUrl) {
-      const customUrl = filteredUpdates.customUrl as string;
-      
-      // Check format - only alphanumeric, underscores, hyphens
-      if (!/^@?[a-zA-Z0-9_-]+$/.test(customUrl)) {
-        return NextResponse.json(
-          { error: 'Custom URL can only contain letters, numbers, underscores, and hyphens' },
-          { status: 400 }
-        );
+    for (const key of Object.keys(updates)) {
+      if (allowedUpdates.includes(key)) {
+        filteredUpdates[key] = updates[key];
       }
+    }
 
+    // Validate customUrl if provided
+    if (filteredUpdates.customUrl) {
       // Add @ prefix if not present
-      const finalCustomUrl = customUrl.startsWith('@') ? customUrl : `@${customUrl}`;
-      filteredUpdates.customUrl = finalCustomUrl;
-
-      // Check if custom URL is already taken
-      const existing = await User.findOne({
-        customUrl: finalCustomUrl,
+      if (!filteredUpdates.customUrl.startsWith('@')) {
+        filteredUpdates.customUrl = `@${filteredUpdates.customUrl}`;
+      }
+      
+      // Check if customUrl is already taken by another user
+      await connectDB();
+      const existingUser = await User.findOne({
+        customUrl: filteredUpdates.customUrl,
         _id: { $ne: currentUser.userId },
       });
 
-      if (existing) {
+      if (existingUser) {
         return NextResponse.json(
-          { error: 'This custom URL is already taken' },
+          { error: 'This handle is already taken' },
           { status: 400 }
         );
       }
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
+    await connectDB();
+
+    const user = await User.findByIdAndUpdate(
       currentUser.userId,
       { $set: filteredUpdates },
       { new: true }
-    )
-      .select('name email avatar banner description customUrl subscribers verified createdAt')
-      .lean();
+    ).select('name email avatar banner description customUrl subscribers');
 
-    if (!updatedUser) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json({
       user: {
-        _id: updatedUser._id.toString(),
-        name: updatedUser.name,
-        email: updatedUser.email,
-        avatar: updatedUser.avatar,
-        banner: updatedUser.banner,
-        description: updatedUser.description,
-        customUrl: updatedUser.customUrl,
-        subscribers: updatedUser.subscribers,
-        verified: updatedUser.verified,
-        createdAt: updatedUser.createdAt.toISOString(),
+        _id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar || '',
+        banner: user.banner || '',
+        description: user.description || '',
+        customUrl: user.customUrl || '',
+        subscribers: user.subscribers || 0,
       },
     });
   } catch (error) {
@@ -140,4 +120,3 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
-

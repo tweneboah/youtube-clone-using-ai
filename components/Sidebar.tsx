@@ -52,11 +52,11 @@ const youItems = [
 ];
 
 const exploreItems = [
+  { icon: RiLiveLine, label: 'Live', href: '/explore/live' },
   { icon: IoMusicalNotesOutline, label: 'Music', href: '/explore/music' },
   { icon: IoGameControllerOutline, label: 'Gaming', href: '/explore/gaming' },
   { icon: HiOutlineNewspaper, label: 'News', href: '/explore/news' },
   { icon: IoTrophyOutline, label: 'Sports', href: '/explore/sports' },
-  { icon: RiLiveLine, label: 'Live', href: '/explore/live' },
   { icon: BiMovie, label: 'Movies', href: '/explore/movies' },
 ];
 

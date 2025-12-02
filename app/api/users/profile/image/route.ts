@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
-import { uploadAvatar, uploadBanner } from '@/lib/cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 
-interface CloudinaryResult {
-  secure_url: string;
-  public_id: string;
-}
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // POST upload profile image (avatar or banner)
 export async function POST(request: NextRequest) {
@@ -21,39 +23,15 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-    const type = formData.get('type') as string | null;
+    const file = formData.get('file') as File;
+    const type = formData.get('type') as string;
 
     if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    if (!type || !['avatar', 'banner'].includes(type)) {
-      return NextResponse.json(
-        { error: 'Invalid type. Must be "avatar" or "banner"' },
-        { status: 400 }
-      );
-    }
-
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        { error: 'Invalid file type. Allowed: JPEG, PNG, WebP, GIF' },
-        { status: 400 }
-      );
-    }
-
-    // Validate file size
-    const maxSize = type === 'avatar' ? 5 * 1024 * 1024 : 10 * 1024 * 1024; // 5MB for avatar, 10MB for banner
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: `File too large. Maximum size: ${type === 'avatar' ? '5MB' : '10MB'}` },
-        { status: 400 }
-      );
+    if (!['avatar', 'banner'].includes(type)) {
+      return NextResponse.json({ error: 'Invalid image type' }, { status: 400 });
     }
 
     // Convert file to buffer
@@ -61,58 +39,62 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Upload to Cloudinary
-    let result: CloudinaryResult;
-    if (type === 'avatar') {
-      result = await uploadAvatar(buffer, currentUser.userId) as CloudinaryResult;
-    } else {
-      result = await uploadBanner(buffer, currentUser.userId) as CloudinaryResult;
-    }
+    const uploadPromise = new Promise<{ secure_url: string }>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: `youtube-clone/${type}s`,
+          resource_type: 'image',
+          transformation: type === 'avatar' 
+            ? { width: 200, height: 200, crop: 'fill', gravity: 'face' }
+            : { width: 2048, height: 1152, crop: 'fill' },
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result as { secure_url: string });
+        }
+      );
+      uploadStream.end(buffer);
+    });
 
-    // Update user in database
+    const uploadResult = await uploadPromise;
+
     await connectDB();
+
+    // Update user with new image URL
+    const updateField = type === 'avatar' ? { avatar: uploadResult.secure_url } : { banner: uploadResult.secure_url };
     
-    const updateField = type === 'avatar' ? { avatar: result.secure_url } : { banner: result.secure_url };
-    
-    const updatedUser = await User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
       currentUser.userId,
       { $set: updateField },
       { new: true }
-    )
-      .select('name email avatar banner description customUrl subscribers verified createdAt')
-      .lean();
+    ).select('name email avatar banner description customUrl subscribers');
 
-    if (!updatedUser) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json({
-      url: result.secure_url,
       user: {
-        _id: updatedUser._id.toString(),
-        name: updatedUser.name,
-        email: updatedUser.email,
-        avatar: updatedUser.avatar,
-        banner: updatedUser.banner,
-        description: updatedUser.description,
-        customUrl: updatedUser.customUrl,
-        subscribers: updatedUser.subscribers,
-        verified: updatedUser.verified,
-        createdAt: updatedUser.createdAt.toISOString(),
+        _id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar || '',
+        banner: user.banner || '',
+        description: user.description || '',
+        customUrl: user.customUrl || '',
+        subscribers: user.subscribers || 0,
       },
     });
   } catch (error) {
     console.error('Upload image error:', error);
     return NextResponse.json(
-      { error: 'Failed to upload image' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
-// DELETE remove profile image
+// DELETE remove profile image (avatar or banner)
 export async function DELETE(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
@@ -126,55 +108,41 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
 
-    if (!type || !['avatar', 'banner'].includes(type)) {
-      return NextResponse.json(
-        { error: 'Invalid type. Must be "avatar" or "banner"' },
-        { status: 400 }
-      );
+    if (!['avatar', 'banner'].includes(type || '')) {
+      return NextResponse.json({ error: 'Invalid image type' }, { status: 400 });
     }
 
     await connectDB();
 
     const updateField = type === 'avatar' ? { avatar: '' } : { banner: '' };
-
-    const updatedUser = await User.findByIdAndUpdate(
+    
+    const user = await User.findByIdAndUpdate(
       currentUser.userId,
       { $set: updateField },
       { new: true }
-    )
-      .select('name email avatar banner description customUrl subscribers verified createdAt')
-      .lean();
+    ).select('name email avatar banner description customUrl subscribers');
 
-    if (!updatedUser) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json({
-      message: `${type === 'avatar' ? 'Avatar' : 'Banner'} removed successfully`,
       user: {
-        _id: updatedUser._id.toString(),
-        name: updatedUser.name,
-        email: updatedUser.email,
-        avatar: updatedUser.avatar,
-        banner: updatedUser.banner,
-        description: updatedUser.description,
-        customUrl: updatedUser.customUrl,
-        subscribers: updatedUser.subscribers,
-        verified: updatedUser.verified,
-        createdAt: updatedUser.createdAt.toISOString(),
+        _id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar || '',
+        banner: user.banner || '',
+        description: user.description || '',
+        customUrl: user.customUrl || '',
+        subscribers: user.subscribers || 0,
       },
     });
   } catch (error) {
     console.error('Delete image error:', error);
     return NextResponse.json(
-      { error: 'Failed to remove image' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-
-
-
